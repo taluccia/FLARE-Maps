@@ -515,7 +515,7 @@ ggsave("../figures/2020-05-19_Figure-Map.png", plot = fig_maps5, width = 6, heig
 
 , angle = 45
 ```{r fig.height=7, fig.width=6}
-ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
+fig_maps6 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
     draw_plot(russia_map3, x = 0, y = 3.5, width = 6, height = 3.5) + 
   draw_plot(plot_transects5, x = 0.8, y = 3.75, width = 2, height = 3,scale =0.9) +
 
@@ -530,13 +530,13 @@ ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
    draw_label("B", x = 0.3, y = 3.3, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
    draw_label("C", x = 3.0, y = 3.3, fontfamily = "sans", fontface = "bold", color = "black", size = 14) 
 
-
+fig_maps6
 ```
 +
   geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2), data = arrowB, 
         arrow = arrow(), lineend = "round")
 ```{r}
-ggsave("../figures/2020-05-19_Figure-Map.png", plot = fig_maps5, width = 6, height = 7, dpi = 600)
+ggsave("../figures/2020-05-22_UAV-Veg-NDVI-RGB.png", plot = fig_maps6, width = 6, height = 7, dpi = 600)
 ```
 
 
