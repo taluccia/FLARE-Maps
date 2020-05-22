@@ -450,7 +450,7 @@ plot_transects6 = ggplot() +
   
   theme_classic()+
   
-  theme(plot.margin = unit(c(t = 0.2, r = 0.2, b = 0.2, l = 0.2), "cm")) +
+  theme(plot.margin = unit(c(t = 0.2, r = 0.2, b = 0.3, l = 0.3), "cm")) +
     theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.x = element_blank(),
@@ -557,22 +557,26 @@ ggsave("../figures/2020-05-19_Figure-Map.png", plot = fig_maps5, width = 6, heig
 ## Option 6 (NDVI and RBG)
 y = 6, yend = 6, x = 2.5, xend = 5.5
 ```{r}
-line1 = data.frame(x1 = 2.7, x2 = 5.2, y1 = 6.43, y2 = 6.25)
-line2 = data.frame(x1 = 2.7, x2 = 5.1, y1 = 4.1, y2 = 6.15)
+line1 = data.frame(x1 = 2.86, x2 = 5.2, y1 = 6.6, y2 = 6.25)
+line2 = data.frame(x1 = 2.87, x2 = 5.1, y1 = 4.1, y2 = 6.15)
 ```
 
 , angle = 45
 ```{r fig.height=7, fig.width=6}
 fig_maps6 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
     draw_plot(russia_map3, x = 0, y = 3.5, width = 6, height = 3.5) + 
-  draw_plot(plot_transects5, x = 0.8, y = 3.75, width = 2, height = 3,scale =0.9) +
+  draw_plot(plot_transects5, x = 0.8, y = 3.75, width = 2.2, height = 3.2,scale =0.9) +
 
   draw_image("../images/2020-05-22_UAV-Veg-RGB-NDVI-CN.PNG", scale = 0.85, x = 0, y = 0.2, width = 6, height = 3.5) +
   draw_label("Russia", x = 3.5, y = 6, fontfamily = "sans", fontface = "bold", color = "black", size = 12) +
-  draw_label("Alnus", x = 2.45, y = 4.4, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
-  draw_label("ANS", x = 1.95, y = 5.0, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
-  draw_label("BP", x = 1.4, y = 5.45, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
-  draw_label("CN", x = 2.1, y = 6.35, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
+  draw_label("Alnus", x = 2.43, y = 4.5, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
+  draw_label("ANS", x = 1.95, y = 5.1, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
+  draw_label("BP", x = 1.4, y = 5.6, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
+  draw_label("CN", x = 2.15, y = 6.5, fontfamily = "sans", fontface = "bold", color = "white", size = 10) +
+  draw_label("161°E", x = 1.67, y = 4.09, fontfamily = "sans", fontface = "plain", color = "black", size = 7) +
+   draw_label("162°E", x = 2.47, y = 4.09, fontfamily = "sans", fontface = "plain", color = "black", size = 7) +
+  draw_label("68°N", x = 0.95, y = 4.69, fontfamily = "sans", fontface = "plain", color = "black", size = 7, angle = 90) +
+  draw_label("68.5°N", x = 0.95, y = 5.74, fontfamily = "sans", fontface = "plain", color = "black", size = 7, angle = 90) +
 
   draw_label("A", x = 0.3, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
    draw_label("B", x = 0.3, y = 3.3, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
@@ -596,13 +600,5 @@ ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
     draw_plot(russia_map2, x = 0, y = 4, width = 6, height = 3) 
 ```
 
-# Save map as file
 
-Use `ggsave()` to export the map to a file. Note the relative path name. Multiple extensions are available. Width and height are defined for this figure, but should be adjusted for future figures.
-
-**CHANGE FILE NAME!!**
-
-```{r}
-ggsave("../figures/MAP-FILE-NAMEt.png", plot = fig_manuscript, width = 6, height = 4, dpi = 600)
-```
 
