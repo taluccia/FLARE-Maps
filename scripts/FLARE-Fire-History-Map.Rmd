@@ -62,7 +62,7 @@ laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0
 ```{r}
 data("wrld_simpl", package = "maptools")                                                                            
 wm <- crop(wrld_simpl, extent(-180, 180, 45, 90))                                                                   
-plot(wm) 
+plot(wm)  
 
 wm_ee <- spTransform(wm, CRSobj = CRS(laea))
 plot(wm_ee)
