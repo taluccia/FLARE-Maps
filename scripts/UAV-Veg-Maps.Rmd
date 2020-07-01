@@ -91,7 +91,7 @@ wrld_simpl_sf = st_as_sf(wrld_simpl)
 
 
 ```{r}
-wm_ru <- crop(wrld_simpl, extent(-180, -180, 40, 90))                                                                   
+wm_ru <- crop(wrld_simpl, extent(-180, 180, 40, 90))                                                                   
 plot(wrld_simpl)
 ```
 
