@@ -25,7 +25,7 @@ This script is reliant on
 
 # Packages
 
-```{r message=FALSE, warning=FALSE}
+```{r}
 library(tidyverse)
 library(DT)
 library(sf)
@@ -71,14 +71,18 @@ extent(kr_stack)
 
 ## World 
 ```{r}
-data("wrld_simpl", package = "maptools")  
+wm = data("wrld_simpl", package = "maptools")  
 ```
 
 ```{r}
-wm <- crop(wrld_simpl, extent(-180, -180, 60, 90))                                                                   
-plot(wm) 
+str(wm)
+```
 
-wm_ee <- spTransform(wm, CRSobj = CRS(laea))
+```{r}
+wm_crop <- crop(wrld_simpl, extent(-180, -180, 45, 90))                                                                   
+plot(wm_crop) 
+
+wm_ee <- spTransform(wm_crop, CRSobj = CRS(laea))
 plot(wm_ee)
 wm_ee
 wm
@@ -86,7 +90,7 @@ wm
 
 ```{r}
 
-wrld_simpl_sf = st_as_sf(wrld_simpl)
+wrld_simpl_sf = st_as_sf(wm)
 ```
 
 
