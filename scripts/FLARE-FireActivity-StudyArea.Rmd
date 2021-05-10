@@ -45,21 +45,34 @@ ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps
 
 
 # Data
+
+## World map
 https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
 
 ```{r}
 wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
 ```
 
+## Ecozones
 ```{r}
 eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
 ```
 
-## Charskiy point
 ```{r}
-cherskiy = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+head(eco)
+```
 
-cherskiy
+## Cities
+```{r}
+chersky = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+chersky
+```
+
+```{r}
+yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+yakutsk
 ```
 
 # Arctic Circle 
@@ -107,7 +120,8 @@ asia
 
 ```{r}
 asia_ea = st_transform(asia, crs = ea_ru)
-ch_ea = st_transform(cherskiy, crs = ea_ru)
+ch_ea = st_transform(chersky, crs = ea_ru)
+yak_ea = st_transform(yakutsk, crs = ea_ru)
 eco_ea = st_transform(eco, crs = ea_ru)
 artic_ea = st_transform(arctic, crs = ea_ru)
 
@@ -143,16 +157,71 @@ theme(
   panel.background = element_rect(fill = "lightblue",
                                 colour = "lightblue",
                                 size = 0.5, linetype = "solid"),
-```{r}
-russia_map3 <- ggplot() +
+```{r fig.height=5, fig.width=6}
+sa_legend <- ggplot() +
      geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
-      geom_sf(data = eco_ea,  aes(fill=eco_code), colour = NA) +
+      geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
   geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
   scale_fill_manual(values=ecoPalette) +
 coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
   theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
-        size = 0.5), panel.background = element_rect(fill = "aliceblue"))
+        size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
+  theme(legend.title = element_blank(), legend.position="bottom", legend.box="vertical", legend.margin=margin()) +
+  guides(fill=guide_legend(nrow=5,byrow=FALSE))
 
 
-russia_map3
+sa_legend
+```
+
+```{r}
+sa_map <- ggplot() +
+     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+      geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
+  geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    scale_fill_manual(values=ecoPalette) +
+  geom_sf(data=ch_ea, colour="#FFFFFF") +
+  geom_sf(data=yak_ea, colour="#FFFFFF") +
+  
+  coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
+  theme(legend.position="none", axis.text.x=element_blank(),axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") 
+
+
+sa_map
+```
+
+```{r}
+legend <- get_legend(
+  # create some space to the left of the legend
+  sa_legend + theme(legend.box.margin = margin(t = 1, r = 0, b = 1, l = 0,))
+)
+```
+
+```{r fig.height=5, fig.width=6}
+
+plot1 = cowplot::plot_grid(sa_map, legend, ncol = 1, rel_heights = c(1, .3)) 
+plot1
+```
+
+```{r fig.height=5, fig.width=6}
+plot2 = cowplot::ggdraw(plot1) + 
+  draw_label(label="Russia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2, vjust = -1) +
+
+  draw_label(label="Japan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -4, vjust = 7) +
+  draw_label(label="China", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -1.8, vjust = 6) +
+  draw_label(label="Mongolia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 1, vjust = 8.5) +
+  draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2.7, vjust = 5) +
+  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "#FFFFFF", size = 10, hjust = 1, vjust = -6.5) +
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "#FFFFFF", size = 10, hjust = -1, vjust = -3) +
+  draw_label(label="Chersky", fontfamily = "sans", fontface = "plain", color = "#FFFFFF", size = 10, hjust = -1.4, vjust = -13.5) 
+
+plot2
+```
+
+
+
+```{r}
+ggsave("../figures/FLARE_FireActivty_StudyArea.png", plot = plot2, width = 6, height = 5, dpi = 600)
 ```
