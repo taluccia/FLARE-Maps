@@ -1,0 +1,158 @@
+---
+title: "Flare-FireActivity-StudyArea"
+author: "Anna Talucci"
+date: "5/10/2021"
+output: html_document
+---
+# Overview
+
+Skeleton for developing a map figure for FLARE UAS vegetation paper
+
+This script is reliant on
+* `Rproj` and therefore the `wd()`does not have to be set
+* Relative path names "../folder-name/file-name.ext"
+* This script is reliant on the following folders 
+    +"../scripts/" --this houses all scripts written in RMarkdown
+    +"../data/shapfiles/" --this houses shape files
+    +"../figures/
+* Please reference the Git Hub repository called **FLARE-UAV-veg** to see the file structure used here
+
+# Packages
+```{r}
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(maptools)
+library(rgeos)
+library(sp)
+library(mapproj)
+library(sf)
+library(RStoolbox)
+library(ggspatial)
+library(cowplot)
+library(dplyr)
+library(RColorBrewer)
+```
+
+
+# Projections 
+
+Russia Equal area projection
+
+```{r}
+ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
+```
+
+
+# Data
+https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
+
+```{r}
+wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
+```
+
+```{r}
+eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
+```
+
+## Charskiy point
+```{r}
+cherskiy = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+cherskiy
+```
+
+# Arctic Circle 
+Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
+
+```{r}
+circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp", "ne_110m_geographic_lines") 
+```
+```{r}
+arctic = circle %>% filter(name=="Arctic Circle")
+```
+
+
+
+
+# Filter
+```{r}
+target_cnty = c("Mongolia", "Kazakhstan", "Japan", "People's Republic of China", "Russia", "Uzbekistan")
+```
+
+```{r}
+target_iso = c("MN", "RU", "CN", "KZ", "KG", "UZ", "JP", "TM")
+```
+
+```{r}
+target = c("Asia", "Europe")
+```
+## Apply filter
+
+Filter for all
+```{r}
+asia  = wrld %>% 
+  filter(CONTINENT %in% target) %>%
+  dplyr::select( OBJECTID:FORMAL_EN, NAME_EN, ISO_A2, CONTINENT:REGION_WB, Shape_Leng:geometry) 
+```
+
+
+
+```{r}
+asia
+```
+
+
+# Reproject
+
+```{r}
+asia_ea = st_transform(asia, crs = ea_ru)
+ch_ea = st_transform(cherskiy, crs = ea_ru)
+eco_ea = st_transform(eco, crs = ea_ru)
+artic_ea = st_transform(arctic, crs = ea_ru)
+
+```
+
+```{r}
+plot(asia_ea$geometry)
+```
+
+```{r}
+asia_ea
+```
+
+# Color Palette
+
+```{r}
+ecoPalette <- c("#CB453D", "#44CB30", "#2E41C3", "#36A4B4", "#B83491", "#B09C32", "#AE3D5F", "#2DC086", "#3261A1")
+```
+## Russia Map
+xmin: -4334205 ymin: -3922562 xmax: 5433752 ymax: 3493703
+
++
+     xlab("Longitude") + 
+   ylab("Latitude") +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "aliceblue"))
+
+Background color #C5D8D7
+
+xmin: -13049610 ymin: -6614424 xmax: 6034662 ymax: 11163640
+
+theme(
+  panel.background = element_rect(fill = "lightblue",
+                                colour = "lightblue",
+                                size = 0.5, linetype = "solid"),
+```{r}
+russia_map3 <- ggplot() +
+     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+      geom_sf(data = eco_ea,  aes(fill=eco_code), colour = NA) +
+  geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+  scale_fill_manual(values=ecoPalette) +
+coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "aliceblue"))
+
+
+russia_map3
+```
