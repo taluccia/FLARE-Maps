@@ -1,0 +1,242 @@
+---
+title: "Flare-FireActivity-Fronteirs"
+author: "Anna Talucci"
+date: "5/10/2021"
+output: html_document
+---
+# Overview
+
+Skeleton for developing a map figure for FLARE UAS vegetation paper
+
+This script is reliant on
+* `Rproj` and therefore the `wd()`does not have to be set
+* Relative path names "../folder-name/file-name.ext"
+* This script is reliant on the following folders 
+    +"../scripts/" --this houses all scripts written in RMarkdown
+    +"../data/shapfiles/" --this houses shape files
+    +"../figures/
+* Please reference the Git Hub repository called **FLARE-UAV-veg** to see the file structure used here
+
+# Packages
+```{r}
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(maptools)
+library(rgeos)
+library(sp)
+library(mapproj)
+library(sf)
+library(RStoolbox)
+library(ggspatial)
+library(cowplot)
+library(dplyr)
+library(RColorBrewer)
+```
+
+
+# Projections 
+
+Russia Equal area projection
+
+```{r}
+ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
+```
+
+
+# Data
+
+## World map
+https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
+
+```{r}
+wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
+```
+
+## permafrost
+```{r}
+permafrost = st_read("../data/shapefiles/permafrost/permaice.shp", "permaice")
+```
+
+```{r}
+head(permafrost)
+```
+
+## fires
+```{r}
+fires = st_read("../data/fires/SiberiaFires2001-2019.shp", "SiberiaFires2001-2019")
+```
+
+```{r}
+head(fires)
+```
+
+## Cities
+```{r}
+chersky = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+chersky
+```
+
+```{r}
+yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+yakutsk
+```
+
+# Arctic Circle 
+Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
+
+```{r}
+circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp", "ne_110m_geographic_lines") 
+```
+```{r}
+arctic = circle %>% filter(name=="Arctic Circle")
+```
+
+
+
+
+# Filter
+## Countries
+```{r}
+target_cnty = c("Mongolia", "Kazakhstan", "Japan", "People's Republic of China", "Russia", "Uzbekistan")
+```
+
+```{r}
+target_iso = c("MN", "RU", "CN", "KZ", "KG", "UZ", "JP", "TM")
+```
+
+```{r}
+target = c("Asia", "Europe")
+```
+
+Filter for all
+```{r}
+asia  = wrld %>% 
+  filter(CONTINENT %in% target) %>%
+  dplyr::select( OBJECTID:FORMAL_EN, NAME_EN, ISO_A2, CONTINENT:REGION_WB, Shape_Leng:geometry) 
+```
+
+```{r}
+asia
+```
+
+## Permafrost
+```{r}
+perma_con = permafrost %>% 
+  filter(EXTENT =="C") 
+```
+
+# Reproject
+
+```{r}
+asia_ea = st_transform(asia, crs = ea_ru)
+ch_ea = st_transform(chersky, crs = ea_ru)
+yak_ea = st_transform(yakutsk, crs = ea_ru)
+fires_ea = st_transform(fires, crs = ea_ru)
+artic_ea = st_transform(arctic, crs = ea_ru)
+perma_ea = st_transform(perma_con, crs = ea_ru)
+```
+
+```{r}
+plot(asia_ea$geometry)
+```
+
+```{r}
+asia_ea
+```
+
+# Color Palette
+
+```{r}
+ecoPalette <- c("#CB453D", "#44CB30", "#2E41C3", "#36A4B4", "#B83491", "#B09C32", "#AE3D5F", "#2DC086", "#3261A1")
+```
+## Russia Map
+xmin: -4334205 ymin: -3922562 xmax: 5433752 ymax: 3493703
+
++
+     xlab("Longitude") + 
+   ylab("Latitude") +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "aliceblue"))
+
+Background color #C5D8D7
+
+xmin: -13049610 ymin: -6614424 xmax: 6034662 ymax: 11163640
+
+theme(
+  panel.background = element_rect(fill = "lightblue",
+                                colour = "lightblue",
+                                size = 0.5, linetype = "solid"),
+                                
+                                scale_fill_manual(values=ecoPalette) +
+```{r fig.height=5, fig.width=6}
+sa_legend <- ggplot() +
+     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+    geom_sf(data = perma_ea, fill = "#baf2ef", colour= NA) +
+      geom_sf(data = fires_ea,  aes(fill=FireYr), colour = NA) +
+  geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+  scale_fill_distiller(palette = "OrRd", direction = 1, guide = "colourbar") +
+coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
+  theme(legend.title = element_blank(), legend.position="bottom", legend.box="horizontal", legend.margin=margin()) 
+
+
+sa_legend
+```
+
+```{r}
+sa_map <- ggplot() +
+     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+    geom_sf(data = perma_ea, fill = "#dcf3ff", colour= NA) +
+      geom_sf(data = fires_ea,  aes(fill=FireYr), colour = NA) +
+  geom_sf(data=artic_ea, fill=NA, colour = "#2F4F4F", lwd=1, linetype="dashed") +
+    scale_fill_distiller(palette = "OrRd", direction = 1, guide = "colourbar") +
+  geom_sf(data=ch_ea, colour="#2F4F4F") +
+  geom_sf(data=yak_ea, colour="#2F4F4F") +
+  
+  coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
+  theme(legend.position="none", axis.text.x=element_blank(),axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") 
+
+
+sa_map
+```
+
+```{r}
+legend <- get_legend(
+  # create some space to the left of the legend
+  sa_legend + theme(legend.box.margin = margin(t = 1, r = 0, b = 1, l = 0,))
+)
+```
+
+```{r fig.height=5, fig.width=6}
+
+plot1 = cowplot::plot_grid(sa_map, legend, ncol = 1, rel_heights = c(1, .3)) 
+plot1
+```
+
+```{r fig.height=5, fig.width=6}
+plot2 = cowplot::ggdraw(plot1) + 
+  draw_label(label="Russia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2, vjust = -1) +
+
+  draw_label(label="Japan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -4, vjust = 7) +
+  draw_label(label="China", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -1.8, vjust = 6) +
+  draw_label(label="Mongolia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 1, vjust = 8.5) +
+  draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2.7, vjust = 5) +
+  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = 1, vjust = -6.5) +
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = -1, vjust = -3) +
+  draw_label(label="Chersky", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = -1.4, vjust = -13.5) 
+
+plot2
+```
+
+
+
+```{r}
+ggsave("../figures/FLARE_FireActivty_frontiers.png", plot = plot2, width = 6, height = 5, units = c("in"), dpi = 600)
+```
