@@ -1,0 +1,103 @@
+---
+title: "MODIS-BurnedArea"
+author: "Anna Talucci"
+date: "5/20/2021"
+output: html_document
+---
+
+# Overview
+
+Skeleton for developing a map figure for FLARE UAS vegetation paper
+
+This script is reliant on
+* `Rproj` and therefore the `wd()`does not have to be set
+* Relative path names "../folder-name/file-name.ext"
+* This script is reliant on the following folders 
+    +"../scripts/" --this houses all scripts written in RMarkdown
+    +"../data/shapfiles/" --this houses shape files
+    +"../figures/
+* Please reference the Git Hub repository called **FLARE-UAV-veg** to see the file structure used here
+
+# Packages
+```{r}
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(maptools)
+library(rgeos)
+library(sp)
+library(mapproj)
+library(sf)
+library(RStoolbox)
+library(ggspatial)
+library(cowplot)
+library(dplyr)
+library(RColorBrewer)
+```
+
+
+# Data
+
+## Raster
+
+```{r}
+
+img = raster("../data/modis/Modis_2003.tif")
+```
+
+```{r}
+img
+```
+
+## Ecozones
+```{r}
+eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
+```
+
+
+
+# Projections 
+
+Russia Equal area projection
+
+```{r}
+ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
+```
+
+
+# Reproject
+```{r}
+img_ea <- projectRaster(img, crs = ea_ru)
+
+```
+
+```{r}
+eco_ea = st_transform(eco, crs=ea_ru)
+```
+
+# Crop Raster
+
+DEMcrop1 <- crop(DEM, cropbox1)
+# Raster info
+
+```{r}
+extent(img_ea)
+```
+
+
+```{r}
+
+hist(img_ea, main="Distribution of values", 
+     col= "purple", 
+     maxpixels=22000000)
+```
+
+```{r}
+col <- terrain.colors(1)
+image(img_ea, zlim=c(250,375), main="Digital Elevation Model (DEM)", col=col)
+```
+
+
+
+
+
