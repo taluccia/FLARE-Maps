@@ -171,7 +171,7 @@ theme(
                                 colour = "lightblue",
                                 size = 0.5, linetype = "solid"),
 ## Legend
-```{r fig.height=5, fig.width=6}
+```{r eval=FALSE, fig.height=5, fig.width=6, include=FALSE}
 sa_legend <- ggplot() +
      geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
       geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
@@ -199,10 +199,11 @@ sa_legend
 ## Main Map
 ```{r fig.height=5, fig.width=6}
 sa_map <- ggplot() +
-     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
-      geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
-  geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
-    scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "SSFS",  "TCST", "TBBMT")) +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+    geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
+  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "SSFS",  "TCST", "TBBMT")) +
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
   geom_sf(data=ch_ea, colour="#FFFFFF") +
   geom_sf(data=yak_ea, colour="#FFFFFF") +
   coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
@@ -211,7 +212,7 @@ sa_map <- ggplot() +
         panel.background = element_rect(fill = "#C5D8D7")) +
   annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
   theme(legend.title = element_blank(), 
-        legend.position = c(.65, .05), 
+        legend.position = c(.65, .04), 
         legend.key.height = unit(.1, 'in'), 
         legend.key.width = unit(.1, 'in'),
         legend.background = element_rect(fill=alpha('white', 0.0)),
@@ -234,13 +235,13 @@ legend <- get_legend(sa_legend )
 ```{r fig.height=5, fig.width=6}
 map1 = cowplot::ggdraw(sa_map) + 
   draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.36, y=.45) +
-  draw_label(label="China", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.65, y=.18) +
-  draw_label(label="Mongolia", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.45, y=.18) +
+  draw_label(label="China", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.67, y=.2) +
+  draw_label(label="Mongolia", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.45, y=.2) +
   draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.17, y=.25) +
       draw_label(label="Japan", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.85, y=.23) +
   draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.45, y=.54) +
-  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.62, y=.45) +
-  draw_label(label="Chersky", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.67, y=.675)
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.66, y=.48) +
+  draw_label(label="Chersky", fontfamily = "sans", fontface = "bold", color = "white", size = 9,  x=.74, y=.715)
 
 map1
 ```
@@ -249,3 +250,8 @@ map1
 ```{r}
 ggsave("../figures/FLARE_FireActivty_StudyArea.png", plot = map1, width = 6, height = 5, units = c("in"), dpi = 600)
 ```
+
+
+# References
+
+Olson, D. M., Dinerstein, E., Wikramanayake, E. D., Burgess, N. D., Powell, G. V. N., Underwood, E. C., D'Amico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Allnutt, T. F., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., Kassem, K. R. 2001. Terrestrial ecoregions of the world: a new map of life on Earth. Bioscience 51(11):933-938.
