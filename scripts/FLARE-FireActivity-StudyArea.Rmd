@@ -85,9 +85,30 @@ circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp"
 arctic = circle %>% filter(name=="Arctic Circle")
 ```
 
+## Permafrost
+```{r}
+permafrost = st_read("../data/permafrost/permaice.shp", "permaice") 
+```
+
+## Yedoma
+```{r}
+yedoma1 = st_read("../data/IRYP_v1_shapefiles/QG1000k_yedoma_russia.shp", "QG1000k_yedoma_russia") 
+yedoma2 = st_read("../data/IRYP_v1_shapefiles/QG2500k_yedoma_russia.shp", "QG2500k_yedoma_russia") 
+yedoma3 = st_read("../data/IRYP_v1_shapefiles/SG500k_yedoma_russia.shp", "SG500k_yedoma_russia") 
+```
+
+```{r}
+head(yedoma1)
+head(yedoma2)
+head(yedoma3)
+
+```
 
 
+```{r}
+yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
 
+```
 # Filter
 
 ## Filter countries
@@ -119,6 +140,12 @@ asia
 eco = eco %>% filter(BIOME!="8")
 ```
 
+
+## Permafrost
+```{r}
+perma_con = permafrost %>% 
+  filter(EXTENT =="C") 
+```
 # Reproject
 
 ```{r}
@@ -127,6 +154,8 @@ ch_ea = st_transform(chersky, crs = ea_ru)
 yak_ea = st_transform(yakutsk, crs = ea_ru)
 eco_ea = st_transform(eco, crs = ea_ru)
 artic_ea = st_transform(arctic, crs = ea_ru)
+yedoma_ea = st_transform(yedoma, crs = ea_ru) 
+perma_ea = st_transform(perma_con, crs = ea_ru) 
 
 ```
 
@@ -196,7 +225,7 @@ coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
 sa_legend
 ```
 
-## Main Map
+## Main Map 1
 ```{r fig.height=5, fig.width=6}
 sa_map <- ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
@@ -225,6 +254,39 @@ sa_map <- ggplot() +
 
 sa_map
 ```
+
+## Main Map 2
+```{r fig.height=5, fig.width=6}
+sa_map2 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_ea, fill = "#dcf3ff", colour= NA) +
+  geom_sf(data = yedoma_ea, fill = "#98eff9", colour= NA) +
+  geom_sf(data = eco_ea,  aes(fill= NA, colour = ECO_NAME)) +
+  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "SSFS",  "TCST", "TBBMT")) +
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  geom_sf(data=ch_ea, colour="#FFFFFF") +
+  geom_sf(data=yak_ea, colour="#FFFFFF") +
+  coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
+  theme(legend.title = element_blank(), 
+        legend.position = c(.65, .04), 
+        legend.key.height = unit(.1, 'in'), 
+        legend.key.width = unit(.1, 'in'),
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) +
+  guides(fill=guide_legend(ncol=9,byrow=FALSE))
+
+
+sa_map2
+```
+
 ## Cowplot Legend
 ```{r}
 legend <- get_legend(sa_legend )
@@ -255,3 +317,7 @@ ggsave("../figures/FLARE_FireActivty_StudyArea.png", plot = map1, width = 6, hei
 # References
 
 Olson, D. M., Dinerstein, E., Wikramanayake, E. D., Burgess, N. D., Powell, G. V. N., Underwood, E. C., D'Amico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Allnutt, T. F., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., Kassem, K. R. 2001. Terrestrial ecoregions of the world: a new map of life on Earth. Bioscience 51(11):933-938.
+
+
+
+Strauss, Jens; Laboor, Sebastian; Fedorov, Alexander N; Fortier, Daniel; Froese, Duane G; Fuchs, Matthias; Grosse, Guido; Günther, Frank; Harden, Jennifer W; Hugelius, Gustaf; Kanevskiy, Mikhail Z; Kholodov, Alexander L; Kunitsky, Victor V; Kraev, Gleb; Lapointe-Elmrabti, Lyna; Lozhkin, Anatoly V; Rivkina, Elizaveta; Robinson, Joel; Schirrmeister, Lutz; Shmelev, Denis; Shur, Yuri; Siegert, Christine; Spektor, Valentin; Ulrich, Mathias; Vartanyan, Sergey L; Veremeeva, Alexandra; Walter Anthony, Katey M; Zimov, Sergey A (2016): Database of Ice-Rich Yedoma Permafrost (IRYP), link to ESRI shapefiles. PANGAEA, https://doi.org/10.1594/PANGAEA.861732,
