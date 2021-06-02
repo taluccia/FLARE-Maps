@@ -109,6 +109,13 @@ head(yedoma3)
 yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
 
 ```
+
+## Fires
+
+```{r}
+fires = st_read("../data/fires/SiberiaFires2001-2020.shp", "SiberiaFires2001-2020")
+```
+
 # Filter
 
 ## Filter countries
@@ -141,11 +148,29 @@ eco = eco %>% filter(BIOME!="8")
 ```
 
 
-## Permafrost
+## Filter Permafrost
 ```{r}
 perma_con = permafrost %>% 
   filter(EXTENT =="C") 
 ```
+
+```{r}
+perma_dis = permafrost %>% 
+  filter(EXTENT=="D") 
+```
+## Filter Fire
+
+
+Convert class to factor
+```{r}
+fires = fires %>% 
+  filter(EcoBiom!="8")
+```
+
+```{r}
+str(fires)
+```
+
 # Reproject
 
 ```{r}
@@ -155,7 +180,9 @@ yak_ea = st_transform(yakutsk, crs = ea_ru)
 eco_ea = st_transform(eco, crs = ea_ru)
 artic_ea = st_transform(arctic, crs = ea_ru)
 yedoma_ea = st_transform(yedoma, crs = ea_ru) 
-perma_ea = st_transform(perma_con, crs = ea_ru) 
+perma_con_ea = st_transform(perma_con, crs = ea_ru) 
+perma_dis_ea = st_transform(perma_dis, crs = ea_ru) 
+fires_ea = st_transform(fires, crs = ea_ru) 
 
 ```
 
@@ -230,7 +257,7 @@ sa_legend
 sa_map <- ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
     geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
-  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "SSFS",  "TCST", "TBBMT")) +
+  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "TCST", "TBBMT")) +
     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
     
   geom_sf(data=ch_ea, colour="#FFFFFF") +
@@ -259,15 +286,47 @@ sa_map
 ```{r fig.height=5, fig.width=6}
 sa_map2 <- ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
-  geom_sf(data = perma_ea, fill = "#dcf3ff", colour= NA) +
-  geom_sf(data = yedoma_ea, fill = "#98eff9", colour= NA) +
-  geom_sf(data = eco_ea,  aes(fill= NA, colour = ECO_NAME)) +
-  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "SSFS",  "TCST", "TBBMT")) +
+  geom_sf(data = perma_con_ea, fill = "#98eff9", colour= NA) +
+  geom_sf(data = perma_dis_ea, fill = "#dcf3ff", colour= NA) +
+  geom_sf(data = yedoma_ea, fill = "#0EC0A6", colour= NA) +
+  geom_sf(data = fires_ea,  aes(fill=FireYr), colour = NA) +
+
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    scale_fill_distiller(palette = "YlOrRd", direction = 1, guide = "colourbar") +
+  coord_sf(xlim = c(-2234205, 3633752), ylim = c(-922562, 3393703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
+  theme(legend.title = element_blank(), 
+        legend.position = c(.1, .25), 
+        legend.box="vertical",
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
+  
+
+
+sa_map2
+```
+
+### Permafrost Legend
+```{r fig.height=5, fig.width=6}
+sa_map3 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, aes(fill = "Continuous"), colour= NA) +
+  geom_sf(data = perma_dis_ea, aes(fill = "Discontinuous"), colour= NA) +
+  geom_sf(data = yedoma_ea, aes(fill = "Yedoma"), colour= NA) +
+  
+  scale_fill_manual(values = c("Continuous" = "#98eff9", "Discontinuous" = "#dcf3ff", "Yedoma" = "#0EC0A6"),  labels = c("Continuous", "Discontinuous", "Yedoma"),
+                       name = "Legend") +
+            
+
     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
     
-  geom_sf(data=ch_ea, colour="#FFFFFF") +
-  geom_sf(data=yak_ea, colour="#FFFFFF") +
-  coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
+  coord_sf(xlim = c(-2734205, 4133752), ylim = c(-1122562, 3493703)) +
   theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
         size = 0.5), 
         panel.background = element_rect(fill = "#C5D8D7")) +
@@ -281,12 +340,13 @@ sa_map2 <- ggplot() +
         axis.ticks.x=element_blank(), 
         axis.text.y=element_blank(), 
         axis.ticks.y=element_blank()) +
-  guides(fill=guide_legend(ncol=9,byrow=FALSE))
+  guides(fill=guide_legend(ncol=3,byrow=FALSE))
+
+  
 
 
-sa_map2
+sa_map3
 ```
-
 ## Cowplot Legend
 ```{r}
 legend <- get_legend(sa_legend )
@@ -313,11 +373,30 @@ map1
 ggsave("../figures/FLARE_FireActivty_StudyArea.png", plot = map1, width = 6, height = 5, units = c("in"), dpi = 600)
 ```
 
+## Fire + Permafrost
+```{r}
+legend2 <- get_legend(sa_map3)
+```
+
+```{r fig.height=5, fig.width=6}
+map2 = cowplot::ggdraw(sa_map2) + 
+  draw_plot(legend2, x=.42, y=.1, width=.5, height=.2) +
+   draw_label(label="Permafrost", fontfamily = "sans", fontface = "bold", color = "black", size = 10,  x=.6, y=.14) 
+
+map2
+```
+
+
+```{r}
+ggsave("../figures/FLARE_FireActivty_FirePermafrost.png", plot = map2, width = 6, height = 5, units = c("in"), dpi = 600)
+```
 
 # References
-
+**Ecozone Shapefile**
 Olson, D. M., Dinerstein, E., Wikramanayake, E. D., Burgess, N. D., Powell, G. V. N., Underwood, E. C., D'Amico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Allnutt, T. F., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., Kassem, K. R. 2001. Terrestrial ecoregions of the world: a new map of life on Earth. Bioscience 51(11):933-938.
 
-
-
+**Yedoma Shapefile**
 Strauss, Jens; Laboor, Sebastian; Fedorov, Alexander N; Fortier, Daniel; Froese, Duane G; Fuchs, Matthias; Grosse, Guido; Günther, Frank; Harden, Jennifer W; Hugelius, Gustaf; Kanevskiy, Mikhail Z; Kholodov, Alexander L; Kunitsky, Victor V; Kraev, Gleb; Lapointe-Elmrabti, Lyna; Lozhkin, Anatoly V; Rivkina, Elizaveta; Robinson, Joel; Schirrmeister, Lutz; Shmelev, Denis; Shur, Yuri; Siegert, Christine; Spektor, Valentin; Ulrich, Mathias; Vartanyan, Sergey L; Veremeeva, Alexandra; Walter Anthony, Katey M; Zimov, Sergey A (2016): Database of Ice-Rich Yedoma Permafrost (IRYP), link to ESRI shapefiles. PANGAEA, https://doi.org/10.1594/PANGAEA.861732,
+
+**Permafrost Shapefile**
+Brown, J., O. Ferrians, J. A. Heginbottom, and E. Melnikov. 2002. Circum-Arctic Map of Permafrost and Ground-Ice Conditions, Version 2. [Indicate subset used]. Boulder, Colorado USA. NSIDC: National Snow and Ice Data Center. doi: https://doi.org/10.7265/skbg-kf16. [Date Accessed].
