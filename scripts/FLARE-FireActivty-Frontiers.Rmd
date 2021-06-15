@@ -233,7 +233,7 @@ plot3 = cowplot::ggdraw(sa_map) +
   draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.15, y=.25) +
   draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", angle = -25, color = "black", size = 10,  x=.25, y=.57) +
   draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 10,  x=.65, y=.5) +
-  draw_label(label="Chersky", fontfamily = "sans", fontface = "plain", color = "black", size = 10,  x=.65, y=.74)
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 10,  x=.65, y=.74)
 
 plot3
 ```
