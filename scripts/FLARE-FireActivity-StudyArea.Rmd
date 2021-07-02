@@ -353,6 +353,7 @@ legend <- get_legend(sa_legend )
 ```
 
 ## Add Labels
+labels=c(expression(paste(6*degree,"E"))
 
 ```{r fig.height=5, fig.width=6}
 map1 = cowplot::ggdraw(sa_map) + 
@@ -363,7 +364,10 @@ map1 = cowplot::ggdraw(sa_map) +
       draw_label(label="Japan", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.85, y=.23) +
   draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.45, y=.54) +
   draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.66, y=.48) +
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "white", size = 9,  x=.74, y=.715)
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "white", size = 9,  x=.74, y=.715) +
+  draw_label(label=(expression(paste(70*degree,"N"))), fontfamily = "sans", fontface = "bold", color = "black",angle= 86, size = 9,  x=.72, y=.84) +
+  draw_label(label=(expression(paste(60*degree,"N"))), fontfamily = "sans", fontface = "bold", color = "black",angle= 80, size = 9,  x=.86, y=.84) +
+  draw_label(label=(expression(paste(50*degree,"N"))), fontfamily = "sans", fontface = "bold", color = "black",angle= 75, size = 9,  x=.96, y=.65)
 
 map1
 ```
