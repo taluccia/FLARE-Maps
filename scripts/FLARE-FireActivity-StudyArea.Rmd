@@ -392,7 +392,7 @@ map2
 
 
 ```{r}
-ggsave("../figures/FLARE_FireActivty_FirePermafrost.png", plot = map2, width = 6, height = 5, units = c("in"), dpi = 600)
+ggsave("../figures/FLARE_SiberiaFiresPermafrost.png", plot = map2, width = 6, height = 5, units = c("in"), dpi = 600)
 ```
 
 # References
