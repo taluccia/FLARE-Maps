@@ -113,7 +113,7 @@ yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
 ## Fires
 
 ```{r}
-fires = st_read("../data/fires/SiberiaFires2001-2020.shp", "SiberiaFires2001-2020")
+fires = st_read("../data/SiberiaFires/SiberiaFires_v2_2001-2020.shp", "SiberiaFires_v2_2001-2020")
 ```
 
 # Filter
