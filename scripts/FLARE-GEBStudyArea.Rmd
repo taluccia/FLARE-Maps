@@ -1,0 +1,334 @@
+---
+title: "FLARE GEB Study Area"
+author: "Anna Talucci"
+date: "8/30/2021"
+output: html_document
+---
+
+# Overview
+
+Skeleton for developing a map figure 
+
+This script is reliant on
+* `Rproj` and therefore the `wd()`does not have to be set
+* Relative path names "../folder-name/file-name.ext"
+* This script is reliant on the following folders 
+    +"../scripts/" --this houses all scripts written in RMarkdown
+    +"../data/shapfiles/" --this houses shape files
+    +"../figures/
+* Please reference the Git Hub repository called **FLARE-UAV-veg** to see the file structure used here
+
+# Packages
+```{r}
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(maptools)
+library(rgeos)
+library(sp)
+library(mapproj)
+library(sf)
+library(RStoolbox)
+library(ggspatial)
+library(cowplot)
+library(dplyr)
+library(RColorBrewer)
+```
+
+
+# Projections 
+
+Russia Equal area projection
+
+```{r}
+ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
+```
+
+
+# Data
+
+## World map
+https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
+
+```{r}
+wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
+```
+
+## Ecozones
+```{r}
+eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
+```
+
+```{r}
+head(eco)
+```
+
+## Cities
+```{r}
+chersky = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+chersky
+```
+
+```{r}
+yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+yakutsk
+```
+
+## Arctic Circle 
+Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
+
+```{r}
+circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp", "ne_110m_geographic_lines") 
+```
+```{r}
+arctic = circle %>% filter(name=="Arctic Circle")
+```
+
+## Permafrost
+```{r}
+permafrost = st_read("../data/permafrost/permaice.shp", "permaice") 
+```
+
+## Yedoma
+```{r}
+yedoma1 = st_read("../data/IRYP_v1_shapefiles/QG1000k_yedoma_russia.shp", "QG1000k_yedoma_russia") 
+yedoma2 = st_read("../data/IRYP_v1_shapefiles/QG2500k_yedoma_russia.shp", "QG2500k_yedoma_russia") 
+yedoma3 = st_read("../data/IRYP_v1_shapefiles/SG500k_yedoma_russia.shp", "SG500k_yedoma_russia") 
+```
+
+```{r}
+head(yedoma1)
+head(yedoma2)
+head(yedoma3)
+
+```
+
+
+```{r}
+yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
+
+```
+
+## Fires
+
+```{r}
+fires = st_read("../data/NESiberiaFires/NESiberiaFires2020.shp", "NESiberiaFires2020")
+```
+
+## Filter
+
+## Filter countries
+```{r}
+target_cnty = c("Mongolia", "Kazakhstan", "Japan", "People's Republic of China", "Russia", "Uzbekistan")
+```
+
+```{r}
+target_iso = c("MN", "RU", "CN", "KZ", "KG", "UZ", "JP", "TM")
+```
+
+```{r}
+target = c("Asia", "Europe")
+```
+
+Filter for all
+```{r}
+asia  = wrld %>% 
+  filter(CONTINENT %in% target) %>%
+  dplyr::select( OBJECTID:FORMAL_EN, NAME_EN, ISO_A2, CONTINENT:REGION_WB, Shape_Leng:geometry) 
+```
+
+```{r}
+asia
+```
+
+## Filter ecozones
+```{r}
+eco
+```
+
+```{r}
+ckmt = eco %>% filter(eco_code == "CKMT")
+nst = eco %>% filter(eco_code=="NST")
+eco = eco %>% filter(eco_code=="NST" | eco_code=="CKMT")
+```
+
+
+## Filter Permafrost
+```{r}
+perma_con = permafrost %>% 
+  filter(EXTENT =="C") 
+```
+
+```{r}
+perma_dis = permafrost %>% 
+  filter(EXTENT=="D") 
+```
+
+# Reproject
+
+```{r}
+asia_ea = st_transform(asia, crs = ea_ru)
+ch_ea = st_transform(chersky, crs = ea_ru)
+yak_ea = st_transform(yakutsk, crs = ea_ru)
+ckmt_ea = st_transform(ckmt, crs = ea_ru)
+nst_ea = st_transform(nst, crs = ea_ru)
+eco_ea = st_transform(eco, crs = ea_ru)
+artic_ea = st_transform(arctic, crs = ea_ru)
+yedoma_ea = st_transform(yedoma, crs = ea_ru) 
+perma_con_ea = st_transform(perma_con, crs = ea_ru) 
+perma_dis_ea = st_transform(perma_dis, crs = ea_ru) 
+fires_ea = st_transform(fires, crs = ea_ru) 
+
+```
+
+```{r}
+plot(asia_ea$geometry)
+```
+
+```{r}
+ecoPalette <- c("#b5b35c", "#556b2f")
+```
+
+# Maps
+## Ecozones NST and CKMT
+
+```{r fig.height=2.5, fig.width=3}
+map1 = ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+    geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
+  scale_fill_manual(values=ecoPalette, labels = c("CKMT", "NST")) +
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  geom_sf(data=ch_ea, colour="#000000") +
+  geom_sf(data=yak_ea, colour="#000000") +
+  coord_sf(xlim = c(-1334205, 3333752), ylim = c(-522562, 3293703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) +
+  theme(legend.title = element_blank(), 
+        legend.position = c(.25, .06), 
+        legend.key.height = unit(.1, 'in'), 
+        legend.key.width = unit(.1, 'in'),
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) +
+  guides(fill=guide_legend(ncol=2,byrow=FALSE))
+
+map1
+```
+
+## map 2 permafrost and fire
+xmin: 1024425 ymin: 1044414 xmax: 2696481 ymax: 2611519
+```{r fig.height=5, fig.width=6}
+map2 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, fill = "#98eff9", colour= NA) +
+  geom_sf(data = perma_dis_ea, fill = "#dcf3ff", colour= NA) +
+  geom_sf(data = yedoma_ea, fill = "#0EC0A6", colour= NA) +
+  geom_sf(data = fires_ea,  fill=NA, colour = "#c62b27") +
+
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+  geom_sf(data=ch_ea, colour="#000000") +
+  coord_sf(xlim = c(1024425, 2696481), ylim = c(1044414, 2611519)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "black") +
+  
+  theme(legend.title = element_blank(), 
+        legend.position = c(.1, .25), 
+        legend.box="vertical",
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
+  
+
+
+map2
+```
+
+## Legend
+```{r fig.height=4.5, fig.width=6}
+legend1 =  ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, aes(fill = "Continuous"), colour= NA) +
+  geom_sf(data = perma_dis_ea, aes(fill = "Discontinuous"), colour= NA) +
+  geom_sf(data = yedoma_ea, aes(fill = "Yedoma"), colour= NA) +
+  geom_sf(data = fires_ea,  aes(fill="Fires"), colour = NA) +
+  
+  scale_fill_manual(values=c("Continuous" = "#98eff9", "Discontinuous" = "#dcf3ff", "Yedoma" = "#0EC0A6", "Fires" = "#c62b27"),   breaks = c("Continuous", "Discontinuous", "Yedoma", "Fires"),labels = c("Continuous", "Discontinuous", "Yedoma", "Fires"),name = "Permafrost      2020 Fires") +     
+  
+   
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  coord_sf(xlim = c(924425, 2596481), ylim = c(1044414, 2611519)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
+  theme(legend.title = element_text(), 
+        legend.position = c(.22, .9), 
+        legend.key.height = unit(.1, 'in'), 
+        legend.key.width = unit(.1, 'in'),
+        legend.background = element_rect(fill=alpha('white', 0.9)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) +
+  guides(fill=guide_legend(nrow=3, byrow=FALSE))
+
+legend1
+```
+
+# Combine Map and Legend
+
+## Ecozones
+```{r fig.height=2.5, fig.width=3}
+fig_eco = cowplot::ggdraw(map1) + 
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 9,  x=.61, y=.77) +
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 9,  x=.5, y=.44) +
+  draw_label(label=(expression(paste(70*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 70, size = 9,  x=.72, y=.9) +
+  draw_label(label=(expression(paste(60*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 60, size = 9,  x=.92, y=.83) +
+  draw_label(label=(expression(paste(50*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 45, size = 9,  x=.91, y=.38) +
+  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.35, y=.54) +
+  draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.36, y=.3) 
+
+fig_eco
+```
+
+## Permafrost and fire
+```{r}
+legend1 <- get_legend(legend1)
+```
+
+```{r fig.height=2.5, fig.width=3}
+fig_fires = cowplot::ggdraw(map2) + 
+  draw_plot(legend1, x=.14, y=.8, width=.5, height=.1) +
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "black", size = 9,  x=.57, y=.89)
+
+fig_fires
+```
+
+
+
+```{r fig.height=7, fig.width=6}
+fig1 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
+    draw_plot(fig_fires, x = 0, y = 0, width = 6, height = 4.5) + 
+  draw_plot(fig_eco, x = .35, y = 4.5, width = 3, height = 2.5) +
+
+  draw_image("../images/Siberia_burn_unburn.PNG", x = 2.9, y = 4.5, width = 3.5, height = 2.5, scale = .95) +
+
+  draw_label("(a)", x = 0.25, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
+   draw_label("(b)", x = 3.55, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
+  draw_label("(c)", x = 0.25, y = 4.2, fontfamily = "sans", fontface = "bold", color = "black", size = 14)
+
+fig1
+```
+
+```{r}
+ggsave("../figures/FLARE-GEB-StudyArea.png", plot = fig1, width = 6, height = 7, units = c("in"), dpi = 600)
+```
