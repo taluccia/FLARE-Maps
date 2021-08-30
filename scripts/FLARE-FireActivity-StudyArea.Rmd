@@ -6,7 +6,7 @@ output: html_document
 ---
 # Overview
 
-Skeleton for developing a map figure for FLARE UAS vegetation paper
+Skeleton for developing a map figure 
 
 This script is reliant on
 * `Rproj` and therefore the `wd()`does not have to be set
