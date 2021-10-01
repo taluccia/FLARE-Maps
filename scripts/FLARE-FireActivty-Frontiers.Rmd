@@ -65,7 +65,7 @@ head(permafrost)
 
 ## fires
 ```{r}
-fires = st_read("../data/fires/SiberiaFires2001-2020.shp", "SiberiaFires2001-2020")
+fires = st_read("../data/ArcticDataCenterSiberiaFires/SiberiaFires2001-2020.shp", "SiberiaFires2001-2020")
 ```
 
 ```{r}
