@@ -164,7 +164,15 @@ perma_dis = permafrost %>%
 Convert class to factor
 ```{r}
 fires = fires %>% 
-  filter(EcoBiom!="8")
+  filter(EcoBiom!="8") %>%
+  mutate(BTCodes = ifelse(EcoCode =="EST", "B1",
+                  ifelse(EcoCode =="NST", "B2",
+                   ifelse(EcoCode =="BT", "T1",
+                       ifelse(EcoCode =="CPT", "T2",
+                         ifelse(EcoCode =="CKMT", "T3",
+                            ifelse(EcoCode =="NSCT", "T4",
+                              ifelse(EcoCode =="TCST", "T5", "T6"))))))))
+
 ```
 
 ```{r}
@@ -204,6 +212,20 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 ```{r}
 ecoPalette <- c("#CB453D", "#44CB30", "#2E41C3", "#36A4B4", "#B83491", "#B09C32", "#AE3D5F", "#2DC086", "#3261A1")
 ```
+
+
+```{r}
+cbbBTCodesPalette <- c("#009E73", "#0072B2", "#000000", "#E69F00", "#56B4E9", "#F0E442", "#CC79A7", "#D55E00")
+```
+
+4. EST = B1 = "#009E73",
+6. NST = B2 = "#0072B2"
+1. BT = T1 = "#000000"
+2. CKMT = T2 = "#E69F00"
+3. CPT = T3 = "#56B4E9"
+5. NSCT = T4 = "#F0E442"
+8. TCST = T5 = "#CC79A7"
+7. TBBMT = T6 = "#D55E00"
 
 ```{r}
 eco_ea$eco_code
@@ -253,11 +275,20 @@ sa_legend
 ```
 
 ## Main Map 1
+4. EST = B1 = "#009E73",
+6. NST = B2 = "#0072B2"
+1. BT = T1 = "#000000"
+2. CKMT = T2 = "#E69F00"
+3. CPT = T3 = "#56B4E9"
+5. NSCT = T4 = "#F0E442"
+8. TCST = T5 = "#CC79A7"
+7. TBBMT = T6 = "#D55E00"
+
 ```{r fig.height=5, fig.width=6}
 sa_map <- ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
     geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
-  scale_fill_manual(values=cbbPalette, labels = c("BT", "CKMT", "CPT", "EST", "NSCT", "NST", "TCST", "TBBMT")) +
+  scale_fill_manual(values=cbbPalette , labels = c("T1", "T2", "T3", "B1", "T4", "B2", "T5", "T6")) +
     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
     
   geom_sf(data=ch_ea, colour="#FFFFFF") +
