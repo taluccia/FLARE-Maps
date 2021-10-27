@@ -186,9 +186,12 @@ fires_ea = st_transform(fires, crs = ea_ru)
 ```{r}
 plot(asia_ea$geometry)
 ```
-
+# Palettes
 ```{r}
 ecoPalette <- c("#b5b35c", "#556b2f")
+```
+```{r}
+cbEcoPal = c("#E1BE6A", "#40B0A6")
 ```
 
 # Maps
@@ -198,7 +201,7 @@ ecoPalette <- c("#b5b35c", "#556b2f")
 map1 = ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
     geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
-  scale_fill_manual(values=ecoPalette, labels = c("CKMT", "NST")) +
+  scale_fill_manual(values=cbEcoPal, labels = c("CKMT", "NST")) +
     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
     
   geom_sf(data=ch_ea, colour="#000000") +
@@ -308,7 +311,7 @@ legend1 <- get_legend(legend1)
 ```{r fig.height=2.5, fig.width=3}
 fig_fires = cowplot::ggdraw(map2) + 
   draw_plot(legend1, x=.14, y=.8, width=.5, height=.1) +
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "black", size = 9,  x=.57, y=.89)
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "black", size = 9,  x=.58, y=.89)
 
 fig_fires
 ```
@@ -317,9 +320,8 @@ fig_fires
 
 ```{r fig.height=7, fig.width=6}
 fig1 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
-    draw_plot(fig_fires, x = 0, y = 0, width = 6, height = 4.5) + 
-  draw_plot(fig_eco, x = .35, y = 4.5, width = 3, height = 2.5) +
-
+  draw_plot(fig_eco, x = .35, y = 4.51, width = 3, height = 2.5) +
+  draw_plot(fig_fires, x = 0.5, y = -0.02, width = 5, height = 4.5, scale = 1.05) +
   draw_image("../images/Siberia_burn_unburn.PNG", x = 2.9, y = 4.5, width = 3.5, height = 2.5, scale = .95) +
 
   draw_label("(a)", x = 0.25, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
