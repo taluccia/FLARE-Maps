@@ -1,0 +1,366 @@
+---
+title: "FLARE-FiresByYear"
+author: "Anna Talucci"
+date: "12/1/2021"
+output: html_document
+---
+
+# Overview
+
+Skeleton for developing a map figure 
+
+This script is reliant on
+* `Rproj` and therefore the `wd()`does not have to be set
+* Relative path names "../folder-name/file-name.ext"
+* This script is reliant on the following folders 
+    +"../scripts/" --this houses all scripts written in RMarkdown
+    +"../data/shapfiles/" --this houses shape files
+    +"../figures/
+* Please reference the Git Hub repository called **FLARE-UAV-veg** to see the file structure used here
+
+# Packages
+```{r}
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(maptools)
+library(rgeos)
+library(sp)
+library(mapproj)
+library(sf)
+library(RStoolbox)
+library(ggspatial)
+library(cowplot)
+library(dplyr)
+library(RColorBrewer)
+```
+
+
+# Projections 
+
+Russia Equal area projection
+
+```{r}
+ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
+```
+
+
+# Data
+
+## World map
+https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
+
+```{r}
+wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
+```
+
+## Ecozones
+```{r}
+eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
+```
+
+```{r}
+head(eco)
+```
+
+## Cities
+```{r}
+chersky = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+chersky
+```
+
+```{r}
+yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
+
+yakutsk
+```
+
+## Arctic Circle 
+Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
+
+```{r}
+circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp", "ne_110m_geographic_lines") 
+```
+```{r}
+arctic = circle %>% filter(name=="Arctic Circle")
+```
+
+## Permafrost
+```{r}
+permafrost = st_read("../data/permafrost/permaice.shp", "permaice") 
+```
+
+## Yedoma
+```{r}
+yedoma1 = st_read("../data/IRYP_v1_shapefiles/QG1000k_yedoma_russia.shp", "QG1000k_yedoma_russia") 
+yedoma2 = st_read("../data/IRYP_v1_shapefiles/QG2500k_yedoma_russia.shp", "QG2500k_yedoma_russia") 
+yedoma3 = st_read("../data/IRYP_v1_shapefiles/SG500k_yedoma_russia.shp", "SG500k_yedoma_russia") 
+```
+
+```{r}
+head(yedoma1)
+head(yedoma2)
+head(yedoma3)
+
+```
+
+
+```{r}
+yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
+
+```
+
+## Fires
+
+```{r}
+fires = st_read("../data/SiberiaFires/SiberiaFires_v2_2001-2020.shp", "SiberiaFires_v2_2001-2020")
+```
+
+# Filter
+
+## Filter countries
+```{r}
+target_cnty = c("Mongolia", "Kazakhstan", "Japan", "People's Republic of China", "Russia", "Uzbekistan")
+```
+
+```{r}
+target_iso = c("MN", "RU", "CN", "KZ", "KG", "UZ", "JP", "TM")
+```
+
+```{r}
+target = c("Asia", "Europe")
+```
+
+Filter for all
+```{r}
+asia  = wrld %>% 
+  filter(CONTINENT %in% target) %>%
+  dplyr::select( OBJECTID:FORMAL_EN, NAME_EN, ISO_A2, CONTINENT:REGION_WB, Shape_Leng:geometry) 
+```
+
+```{r}
+asia
+```
+
+## Filter ecozones
+```{r}
+eco = eco %>% filter(BIOME!="8")
+```
+
+
+## Filter Permafrost
+```{r}
+perma_con = permafrost %>% 
+  filter(EXTENT =="C") 
+```
+
+```{r}
+perma_dis = permafrost %>% 
+  filter(EXTENT=="D") 
+```
+## Filter Fire
+
+
+Convert class to factor
+```{r}
+fires = fires %>% 
+  filter(EcoBiom!="8") %>%
+  mutate(BTCodes = ifelse(EcoCode =="EST", "B1",
+                  ifelse(EcoCode =="NST", "B2",
+                   ifelse(EcoCode =="BT", "T1",
+                       ifelse(EcoCode =="CPT", "T2",
+                         ifelse(EcoCode =="CKMT", "T3",
+                            ifelse(EcoCode =="NSCT", "T4",
+                              ifelse(EcoCode =="TCST", "T5", "T6"))))))))
+
+```
+
+```{r}
+str(fires)
+```
+
+# Reproject
+
+```{r}
+asia_ea = st_transform(asia, crs = ea_ru)
+ch_ea = st_transform(chersky, crs = ea_ru)
+yak_ea = st_transform(yakutsk, crs = ea_ru)
+eco_ea = st_transform(eco, crs = ea_ru)
+artic_ea = st_transform(arctic, crs = ea_ru)
+yedoma_ea = st_transform(yedoma, crs = ea_ru) 
+perma_con_ea = st_transform(perma_con, crs = ea_ru) 
+perma_dis_ea = st_transform(perma_dis, crs = ea_ru) 
+fires_ea = st_transform(fires, crs = ea_ru) 
+
+```
+
+```{r}
+plot(asia_ea$geometry)
+```
+
+```{r}
+asia_ea
+```
+
+# Color Palette
+```{r}
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+```{r}
+ecoPalette <- c("#CB453D", "#44CB30", "#2E41C3", "#36A4B4", "#B83491", "#B09C32", "#AE3D5F", "#2DC086", "#3261A1")
+```
+
+
+```{r}
+cbbBTCodesPalette <- c("#009E73", "#0072B2", "#000000", "#E69F00", "#56B4E9", "#F0E442", "#CC79A7", "#D55E00")
+```
+
+4. EST = B1 = "#009E73",
+6. NST = B2 = "#0072B2"
+1. BT = T1 = "#000000"
+2. CKMT = T2 = "#E69F00"
+3. CPT = T3 = "#56B4E9"
+5. NSCT = T4 = "#F0E442"
+8. TCST = T5 = "#CC79A7"
+7. TBBMT = T6 = "#D55E00"
+
+```{r}
+eco_ea$eco_code
+```
+
+## Russia Map
+xmin: -4334205 ymin: -3922562 xmax: 5433752 ymax: 3493703
+
++
+     xlab("Longitude") + 
+   ylab("Latitude") +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), panel.background = element_rect(fill = "aliceblue"))
+
+Background color #C5D8D7
+
+xmin: -13049610 ymin: -6614424 xmax: 6034662 ymax: 11163640
+
+theme(
+  panel.background = element_rect(fill = "lightblue",
+                                colour = "lightblue",
+                                size = 0.5, linetype = "solid"),
+
+
+## Map 1
+ coord_sf(xlim = c(924425, 2596481), ylim = c(1044414, 2611519)) +
+```{r fig.height=5, fig.width=6}
+fires_ea = fires_ea %>% filter(FireYr==2020) # Filter fires by year
+
+map1 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#6C7A86", colour="#A9AB9D") +
+  geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  geom_sf(data = fires_ea,  fill= "#ff6347", colour = NA) +
+
+    
+  coord_sf(xlim = c(-1034205, 3433752), ylim = c(-722562, 3293703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) 
+  theme(legend.title = element_blank(), 
+        legend.position = "none", 
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
+
+ggsave("../figures/FLARE-SimpleMapFires2020.png", plot = map1, width = 6, height = 5, units = c("in"), dpi = 600)
+```
+
+
+
+## Main Map 2
+ coord_sf(xlim = c(924425, 2596481), ylim = c(1044414, 2611519)) +
+```{r eval=FALSE, include=FALSE}
+sa_map2 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, fill = "#98eff9", colour= NA) +
+  geom_sf(data = perma_dis_ea, fill = "#dcf3ff", colour= NA) +
+  geom_sf(data = yedoma_ea, fill = "#0EC0A6", colour= NA) +
+  geom_sf(data = fires_ea,  fill= "#ff6347", colour = NA) +
+
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  coord_sf(xlim = c(-1034205, 3433752), ylim = c(-722562, 3293703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) 
+  theme(legend.title = element_blank(), 
+        legend.position = "none", 
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
+  
+
+
+sa_map2
+```
+
+### Permafrost Legend
+```{r eval=FALSE, fig.height=5, fig.width=6, include=FALSE}
+sa_map3 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, aes(fill = "Continuous"), colour= NA) +
+  geom_sf(data = perma_dis_ea, aes(fill = "Discontinuous"), colour= NA) +
+  geom_sf(data = yedoma_ea, aes(fill = "Yedoma"), colour= NA) +
+  
+  scale_fill_manual(values = c("Continuous" = "#98eff9", "Discontinuous" = "#dcf3ff", "Yedoma" = "#0EC0A6"),  labels = c("Continuous", "Discontinuous", "Yedoma"),
+                       name = "Legend") +
+            
+
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+    
+  coord_sf(xlim = c(-2734205, 4133752), ylim = c(-1122562, 3493703)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
+        size = 0.5), 
+        panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
+  theme(legend.title = element_blank(), 
+        legend.position = c(.65, .04), 
+        legend.key.height = unit(.1, 'in'), 
+        legend.key.width = unit(.1, 'in'),
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) +
+  guides(fill=guide_legend(ncol=3,byrow=FALSE))
+
+  
+
+
+sa_map3
+```
+
+
+## Fire + Permafrost
+```{r eval=FALSE, include=FALSE}
+legend2 <- get_legend(sa_map3)
+```
+
+```{r eval=FALSE, fig.height=5, fig.width=6, include=FALSE}
+map2 = cowplot::ggdraw(sa_map2) + 
+  draw_plot(legend2, x=.41, y=.09, width=.5, height=.2) +
+   draw_label(label="Permafrost", fontfamily = "sans", fontface = "bold", color = "black", size = 10,  x=.6, y=.14) 
+
+map2
+```
+
+
+```{r eval=FALSE, include=FALSE}
+ggsave("../figures/FLARE-Fires2020.png", plot = map2, width = 6, height = 5, units = c("in"), dpi = 600)
+```
+
