@@ -76,6 +76,8 @@ yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj
 yakutsk
 ```
 
+
+
 ## Arctic Circle 
 Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
 
@@ -116,6 +118,7 @@ yedoma = dplyr::bind_rows(yedoma1, yedoma2, yedoma3)
 ```{r}
 fires = st_read("../data/NESiberiaFires/NESiberiaFires2020.shp", "NESiberiaFires2020")
 ```
+
 
 ## Filter
 
@@ -181,6 +184,11 @@ perma_con_ea = st_transform(perma_con, crs = ea_ru)
 perma_dis_ea = st_transform(perma_dis, crs = ea_ru) 
 fires_ea = st_transform(fires, crs = ea_ru) 
 
+```
+## Write Eco_ea to file
+
+```{r eval=FALSE, include=FALSE}
+st_write(eco_ea, "../outputs/NST_CKMT_Eco/NST_CKMT_Eco.shp", driver="ESRI Shapefile") 
 ```
 
 ```{r}
@@ -254,6 +262,35 @@ map2 <- ggplot() +
 map2
 ```
 
+## Map 3
+```{r fig.height=5, fig.width=6}
+map3 <- ggplot() +
+    geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
+  geom_sf(data = perma_con_ea, fill = "#98eff9", colour= NA) +
+  geom_sf(data = perma_dis_ea, fill = "#dcf3ff", colour= NA) +
+  geom_sf(data = yedoma_ea, fill = "#0EC0A6", colour= NA) +
+  geom_sf(data = fires_ea,  fill=NA, colour = "#c62b27") +
+
+    geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+  geom_sf(data=ch_ea, colour="#000000") +
+  coord_sf(xlim = c(924425, 2796481), ylim = c(744414, 2711519)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "black") +
+  
+  theme(legend.title = element_blank(), 
+        legend.position = c(.1, .25), 
+        legend.box="vertical",
+        legend.background = element_rect(fill=alpha('white', 0.0)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
+  
+
+
+map3
+```
+
 ## Legend
 ```{r fig.height=4.5, fig.width=6}
 legend1 =  ggplot() +
@@ -318,7 +355,7 @@ fig_fires
 
 
 
-```{r fig.height=7, fig.width=6}
+```{r eval=FALSE, fig.height=7, fig.width=6, include=FALSE}
 fig1 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
   draw_plot(fig_eco, x = .35, y = 4.51, width = 3, height = 2.5) +
   draw_plot(fig_fires, x = 0.5, y = -0.02, width = 5, height = 4.5, scale = 1.05) +
@@ -331,6 +368,39 @@ fig1 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
 fig1
 ```
 
+
+
+## Figure Maps only
+ggdraw(xlim = c(0, 6), ylim = c(0, 5)) +
+
+```{r fig.height=7, fig.width=6}
+fig2 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
+  draw_plot(fig_eco, x = 1.5, y = 4.51, width = 3, height = 2.5) +
+  draw_plot(fig_fires, x = 0.5, y = -0.02, width = 5, height = 4.5, scale = 1.05) +
+
+
+  draw_label("(a)", x = 0.25, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
+
+  draw_label("(b)", x = 0.25, y = 4.2, fontfamily = "sans", fontface = "bold", color = "black", size = 14)
+
+fig2
+```
+
+```{r fig.height=5, fig.width=6}
+ggdraw(xlim = c(0, 6), ylim = c(0, 5)) +
+  draw_plot(map3, x = -.1, y = -0.1, width = 6, height = 5, scale = 1.0) + 
+  
+  draw_plot(legend1, x=1.5, y=4.25, width=.5, height=.1) +
+  
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "black", size = 9,  x=4.5, y=5.8) +
+  
+draw_plot(fig_eco, x = 3, y = 0, width = 3, height = 2.5) 
+
+  
+
+
+```
+
 ```{r}
-ggsave("../figures/FLARE-GEB-StudyArea.png", plot = fig1, width = 6, height = 7, units = c("in"), dpi = 600)
+ggsave("../figures/FLARE-GEB-StudyAreaMap.png", plot = fig2, width = 6, height = 7, units = c("in"), dpi = 600)
 ```
