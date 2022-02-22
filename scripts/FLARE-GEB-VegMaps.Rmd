@@ -52,153 +52,91 @@ Russia Equal area projection
 ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
 ```
 
+```{r}
+wkt_ru = 'PROJCS["Albers Conical Equal Area",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9108"]],AUTHORITY["EPSG","4326"]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["standard_parallel_1",50],PARAMETER["standard_parallel_2",70],PARAMETER["latitude_of_center",56],PARAMETER["longitude_of_center",100],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["meters",1]]'
+  
+
+```
 
 # Data
+## Asia
+ "../outputs/Asia_ea/asia_ea.shp"
 
-## World map
-https://datacatalog.worldbank.org/dataset/world-bank-official-boundaries
-
-```{r eval=FALSE, include=FALSE}
-wrld = st_read("../data/shapefiles/world/WB_countries_Admin0_10m.shp", "WB_countries_Admin0_10m")
+```{r}
+asia = st_read("../data/Asia_ea/asia_ea.shp", "asia_ea")
 ```
 
-## Ecozones
-```{r eval=FALSE, include=FALSE}
-eco = st_read("../data/ecozones/ne_siberia_ecozones9_ee.shp", "ne_siberia_ecozones9_ee")
-```
 ## Fires
 ```{r}
 fires = st_read("../data/NESiberiaFires/NESiberiaFires2020.shp", "NESiberiaFires2020")
 ```
+```{r}
+st_crs(fires)
+```
+
 
 ## Vegetation
-```{r}
-tp<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent_clip.tif")
-```
 
 ```{r eval=FALSE, include=FALSE}
-ft<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Type.tif")
+veg<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent_clip.tif")
 ```
 
 ```{r}
-tp
-str(tp)
+veg1000<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent-clip-scale1000.tif")
+```
+
+# Projection
+
+```{r}
+veg1000_reprj <- projectRaster(veg1000, crs = crs(ea_ru))
+
+```
+```{r}
+x2 <- st_crs(fires)
+```
+
+```{r}
+(x3 <- CRS(SRS_string = x2$wkt))
+```
+```{r}
+w <- wkt(veg1000)
+```
+
+
+
+
+
+# Color Palettes
+```{r}
+# Assign color to a object for repeat use/ ease of changing
+myCol = c('#b2e2e2','#66c2a4','#2ca25f','#006d2c')
+myCol2 = c('darkolivegreen1','lightgreen','springgreen4','darkgreen')
 ```
 
 ```{r eval=FALSE, include=FALSE}
-ft
-str(ft)
+png('../figures/vegMap.png', width = 1575, height=945, units = "px")
+# plot using breaks.
+plot(veg, 
+     breaks = c(1, 25, 50, 75, 100), 
+     col = myCol2,
+     axes=FALSE,
+     box=FALSE)
+plot(fires,col="transparent",border="red", add = TRUE)
+dev.off()
 ```
 
-## Cities
-```{r eval=FALSE, include=FALSE}
-chersky = st_sf(geometry = st_sfc(st_point(c(161.399713, 68.739907))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
-
-chersky
+```{r}
+png('../figures/vegPercentScale1000Map.png', width = 1575, height=945, units = "px")
+# plot using breaks.
+plot(veg1000, 
+     breaks = c(1, 25, 50, 75, 100), 
+     col = myCol2,
+     axes=FALSE,
+     box=FALSE)
+plot(fires,col="transparent", border="red", add = TRUE)
+dev.off()
 ```
 
-```{r eval=FALSE, include=FALSE}
-yakutsk = st_sf(geometry = st_sfc(st_point(c(129.7422, 62.0397))), crs = ("+proj=longlat +datum=WGS84 +no_defs"))
-
-yakutsk
-```
-
-# Arctic Circle 
-Arctic Circle shapefile came from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-geographic-lines/)
-
-```{r eval=FALSE, include=FALSE}
-circle = st_read("../data/ne_110m_geographic_lines/ne_110m_geographic_lines.shp", "ne_110m_geographic_lines") 
-```
-```{r eval=FALSE, include=FALSE}
-arctic = circle %>% filter(name=="Arctic Circle")
-```
-
-
-
-
-# Filter
-## Countries
-```{r eval=FALSE, include=FALSE}
-target_cnty = c("Mongolia", "Kazakhstan", "Japan", "People's Republic of China", "Russia", "Uzbekistan")
-```
-
-```{r eval=FALSE, include=FALSE}
-target_iso = c("MN", "RU", "CN", "KZ", "KG", "UZ", "JP", "TM")
-```
-
-```{r eval=FALSE, include=FALSE}
-target = c("Asia", "Europe")
-```
-
-Filter for all
-```{r eval=FALSE, include=FALSE}
-asia  = wrld %>% 
-  filter(CONTINENT %in% target) %>%
-  dplyr::select( OBJECTID:FORMAL_EN, NAME_EN, ISO_A2, CONTINENT:REGION_WB, Shape_Leng:geometry) 
-```
-
-```{r eval=FALSE, include=FALSE}
-asia
-```
-
-## Filter ecozones
-```{r eval=FALSE, include=FALSE}
-eco
-```
-
-```{r eval=FALSE, include=FALSE}
-ckmt = eco %>% filter(eco_code == "CKMT")
-nst = eco %>% filter(eco_code=="NST")
-eco = eco %>% filter(eco_code=="NST" | eco_code=="CKMT")
-```
-
-
-# Reproject
-
-
-```{r eval=FALSE, include=FALSE}
-asia_ea = st_transform(asia, crs = ea_ru)
-ch_ea = st_transform(chersky, crs = ea_ru)
-yak_ea = st_transform(yakutsk, crs = ea_ru)
-eco_ea = st_transform(eco, crs = ea_ru)
-artic_ea = st_transform(arctic, crs = ea_ru)
-
-```
-
-```{r eval=FALSE, include=FALSE}
-plot(asia_ea$geometry)
-```
-
-```{r eval=FALSE, include=FALSE}
-asia_ea
-```
-
-# Crop
-
-```{r eval=FALSE, include=FALSE}
-
-tp_crop <- crop(tp, extent(eco_ea))
-```
-
-```{r eval=FALSE, include=FALSE}
-
-ft_crop <- mask(x=ft, mask=eco_ea)
-```
-
-```{r eval=FALSE, include=FALSE}
-
-plot(eco_ea$geometry)
-plot(tp_crop, add=TRUE)
-plot(fires, add = TRUE)
-```
-
-```{r eval=FALSE, include=FALSE}
-plot(ft_crop)
-plot(fires, add = TRUE)
-```
-```{r eval=FALSE, include=FALSE}
-getValues(ft_crop)
-```
 # Color Palette
 
 ```{r eval=FALSE, include=FALSE}
@@ -216,20 +154,15 @@ GreenPalette <- c('#edf8fb','#b2e2e2','#66c2a4','#2ca25f','#006d2c')
 
 # Russia Map
 
-```{r eval=FALSE, include=FALSE}
-albedocolors<-brewer.pal(n=11,"BrBG")
 
-AlbedoBreaks<-seq(-sd(getValues(water_crop),na.rm=TRUE)*2,sd(getValues(water_crop),na.rm=TRUE)*2, length=5)
-
-AlbedoBreaks
-```
 limits=c(-.017,.017), breaks=c(-0.015, -0.008,  0.000,  0.008,  0.015)
 
 # Veg Maps
 ```{r}
 ggplot()+
-  layer_spatial(tp) +
-  scale_fill_gradientn(colours=GreenPalette,  na.value = "transparent")
+  layer_spatial(veg1000) +
+  scale_fill_gradientn(colours=myCol2,  limits=c(1,100), breaks=c(25, 50,  75, 100), na.value = "transparent") +
+  geom_sf(data=fires, colour="red")
    
 ```
 
@@ -237,10 +170,8 @@ ggplot()+
 
 ```{r fig.height=5, fig.width=6}
 ggplot() +
-     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
-     layer_spatial(tp_crop) +
-  scale_fill_gradientn(colours=GreenPalette,limits=c(0,100), breaks=c(20, 40,  60,  80,  100),  na.value = "transparent") +
-     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
+     layer_spatial(veg1000) +
+  scale_fill_gradientn(colours=myCol2,limits=c(1,100), breaks=c(25, 50,  75, 100),  na.value = "transparent") +
 
   
 coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
