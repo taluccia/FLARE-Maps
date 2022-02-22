@@ -52,7 +52,7 @@ Russia Equal area projection
 ea_ru = "+proj=aea +lat_1=50 +lat_2=70 +lat_0=56 +lon_0=100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 wkt_ru = 'PROJCS["Albers Conical Equal Area",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9108"]],AUTHORITY["EPSG","4326"]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["standard_parallel_1",50],PARAMETER["standard_parallel_2",70],PARAMETER["latitude_of_center",56],PARAMETER["longitude_of_center",100],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["meters",1]]'
   
 
@@ -85,25 +85,25 @@ veg<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent_clip.tif")
 veg1000<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent-clip-scale1000.tif")
 ```
 
+```{r}
+vegWgs<-raster("../data/VegetationRasters/FLARE-Eco-Forest-Percent-clip-2000-WGS.tif")
+```
+
 # Projection
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 veg1000_reprj <- projectRaster(veg1000, crs = crs(ea_ru))
 
 ```
+
 ```{r}
-x2 <- st_crs(fires)
+vegwgs_reprj <- projectRaster(vegWgs, crs = crs(ea_ru))
+
 ```
 
 ```{r}
-(x3 <- CRS(SRS_string = x2$wkt))
+vegwgs_reprj
 ```
-```{r}
-w <- wkt(veg1000)
-```
-
-
-
 
 
 # Color Palettes
@@ -125,10 +125,26 @@ plot(fires,col="transparent",border="red", add = TRUE)
 dev.off()
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 png('../figures/vegPercentScale1000Map.png', width = 1575, height=945, units = "px")
 # plot using breaks.
+plot(st_geometry(asia), col = "#C0C0C0", border = "#A9AB9D")
 plot(veg1000, 
+     breaks = c(1, 25, 50, 75, 100), 
+     col = myCol2,
+     axes=FALSE,
+     box=FALSE, 
+     ext = extent(fires), 
+     add=TRUE)
+plot(fires,col="transparent", border="red", add = TRUE)
+dev.off()
+```
+
+```{r eval=FALSE, include=FALSE}
+png('../figures/vegPercentWGSMap.png', width = 1575, height=945, units = "px")
+# plot using breaks.
+
+plot(vegwgs_reprj, 
      breaks = c(1, 25, 50, 75, 100), 
      col = myCol2,
      axes=FALSE,
@@ -136,7 +152,6 @@ plot(veg1000,
 plot(fires,col="transparent", border="red", add = TRUE)
 dev.off()
 ```
-
 # Color Palette
 
 ```{r eval=FALSE, include=FALSE}
@@ -158,122 +173,38 @@ GreenPalette <- c('#edf8fb','#b2e2e2','#66c2a4','#2ca25f','#006d2c')
 limits=c(-.017,.017), breaks=c(-0.015, -0.008,  0.000,  0.008,  0.015)
 
 # Veg Maps
-```{r}
-ggplot()+
-  layer_spatial(veg1000) +
-  scale_fill_gradientn(colours=myCol2,  limits=c(1,100), breaks=c(25, 50,  75, 100), na.value = "transparent") +
-  geom_sf(data=fires, colour="red")
+(.15, .83)
+```{r fig.height=5, fig.width=6}
+p1 = ggplot()+
+  geom_sf(data=asia, fill = "#C0C0C0", colour="#A9AB9D") +
+  layer_spatial(vegwgs_reprj) +
+  scale_fill_gradientn(colours=myCol2,  limits=c(1,100), breaks=c(25, 50,  75, 100), na.value = "transparent", name="Percent tree cover") +
+  geom_sf(data=fires, fill=NA, colour = "#c62b27") +
+  coord_sf(xlim = c(1024425, 2696481), ylim = c(1044414, 2611519)) +
+  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
+  
+  theme( 
+        legend.position = c(.9, .1), 
+        legend.box="vertical",
+        legend.background = element_rect(fill=alpha('white', 0.5)),
+         axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank()) 
    
+p1
 ```
 
 
 
-```{r fig.height=5, fig.width=6}
-ggplot() +
-     layer_spatial(veg1000) +
-  scale_fill_gradientn(colours=myCol2,limits=c(1,100), breaks=c(25, 50,  75, 100),  na.value = "transparent") +
-
-  
-coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
-  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
-        size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
-  theme(legend.title = element_blank(), legend.position="right", legend.box="vertical", legend.margin=margin()) 
 
 
 
-```
-
-
-  geom_sf(data =  perma_dis_ea, fill = "#DDFFDC", color=NA)+
-```{r fig.height=5, fig.width=6}
-water_map <- ggplot() +
-     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
-  
-   layer_spatial(water_crop) +
-  scale_fill_gradientn(colours=AlbPalette,limits=c(-.017,.017), breaks=c(-0.015, -0.008,  0.000,  0.008,  0.015),  na.value = "transparent") +
-   
-  geom_sf(data=artic_ea, fill=NA, colour = "#2F4F4F", lwd=1, linetype="dashed") +
-
-  geom_sf(data=ch_ea, colour="#2F4F4F") +
-  geom_sf(data=yak_ea, colour="#2F4F4F") +
-  
-   coord_sf(xlim = c(-2934205, 4133752), ylim = c(-1122562, 3493703)) +
-  theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", 
-        size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
-  theme(plot.margin=unit(c(0,0,0,0), "mm"), 
-        legend.title = element_blank(), 
-        legend.position = c(0.92, 0.25), axis.text.x=element_blank(),axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) +
-  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") 
-
-
-water_map
-```
-
-
-
-```{r fig.height=5, fig.width=6}
-plot3 = cowplot::ggdraw(water_map) + 
-  draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.28, y=.45) +
-  draw_label(label="China", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.67, y=.23) +
-  draw_label(label="Mongolia", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.45, y=.14) +
-  draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "plain", color = "black", size = 11,  x=.15, y=.25) +
-  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", angle = -25, color = "black", size = 10,  x=.26, y=.58) +
-  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 10,  x=.65, y=.5) +
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 10,  x=.65, y=.73)
-
-plot3
-```
-
-```{r}
-ggsave("../figures/FLARE_Frontiers_water.png", plot = plot3, width = 6, height = 5, units = c("in"), dpi = 600)
-```
-
-
-
-# Micellaneous
-```{r}
-legend <- get_legend(
-  # create some space to the left of the legend
-  sa_legend + theme(legend.box.margin = margin(t = 1, r = 0, b = 1, l = 0,))
-)
-```
-
-```{r fig.height=5, fig.width=6}
-
-plot1 = cowplot::plot_grid(sa_map, legend, ncol = 1, rel_heights = c(1, .3)) 
-plot1
-```
-
-```{r fig.height=5, fig.width=6}
-plot2 = cowplot::ggdraw(plot1) + 
-  draw_label(label="Russia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2, vjust = -1) +
-
-  draw_label(label="Japan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -4, vjust = 7) +
-  draw_label(label="China", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = -1.8, vjust = 6) +
-  draw_label(label="Mongolia", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 1, vjust = 8.5) +
-  draw_label(label="Kazakhstan", fontfamily = "sans", fontface = "bold", color = "black", size = 11, hjust = 2.7, vjust = 5) +
-  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = 1, vjust = -6.5) +
-  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = -1, vjust = -3) +
-  draw_label(label="Chersky", fontfamily = "sans", fontface = "plain", color = "#2F4F4F", size = 10, hjust = -1.4, vjust = -13.5) 
-
-plot2
-```
 
 
 ```{r}
-f <- system.file("external/test.grd", package="raster")
-r <- raster(f)
-r <- reclassify(r, c(0, 500, 1,
-                     500, 2000, 2))
+ggsave("../figures/FLARE_GEB_PercentTrees.png", plot = p1, width = 6, height = 5, units = c("in"), dpi = 600)
 ```
-```{r}
-f
-r
 
-```
-```{r}
-gplot(r) +
-    geom_raster(aes(fill = factor(value))) +
-    coord_equal()
-```
+
 
