@@ -223,7 +223,7 @@ cbEcoPal = c("#E1BE6A", "#40B0A6")
 # Maps
 ## Ecozones NST and CKMT
 
-```{r fig.height=3.5, fig.width=3}
+```{r fig.height=2.5, fig.width=2}
 map1 = ggplot() +
     geom_sf(data = asia_ea, fill = "#C0C0C0", colour="#A9AB9D") +
     geom_sf(data = eco_ea,  aes(fill=ECO_NAME), colour = NA) +
@@ -237,9 +237,10 @@ map1 = ggplot() +
         size = 0.5), 
         panel.background = element_rect(fill = "#C5D8D7")) +
   theme(legend.title = element_blank(), 
-        legend.position = c(.25, .06), 
-        legend.key.height = unit(.1, 'in'), 
-        legend.key.width = unit(.1, 'in'),
+        legend.text=element_text(size=5),
+        legend.position = c(.7, .08), 
+        legend.key.height = unit(.05, 'in'), 
+        legend.key.width = unit(.05, 'in'),
         legend.background = element_rect(fill=alpha('white', 0.0)),
          axis.text.x=element_blank(),
         axis.ticks.x=element_blank(), 
@@ -258,13 +259,13 @@ map2 <- ggplot() +
   geom_sf(data = perma_con_ea, fill = "#98eff9", colour= NA) +
   geom_sf(data = perma_dis_ea, fill = "#dcf3ff", colour= NA) +
   geom_sf(data = yedoma_ea, fill = "#0EC0A6", colour= NA) +
-  geom_sf(data = fires_ea,  fill=NA, colour = "#c62b27") +
+  geom_sf(data = fires_ea,  fill=NA, colour = "#c62b27", lwd=0.2) +
 
     geom_sf(data=artic_ea, fill=NA, colour = "#FFFFFF", lwd=1, linetype="dashed") +
-  geom_sf(data=ch_ea, colour="#000000") +
+ 
   coord_sf(xlim = c(1024425, 2696481), ylim = c(1044414, 2611519)) +
   theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
-  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "black") +
+  annotation_scale(location = "bl", line_width = .25, height = unit(0.15, "cm"), text_cex = 0.5, text_face = "plain", text_family = "sans", text_col = "black") +
   
   theme(legend.title = element_blank(), 
         legend.position = c(.1, .25), 
@@ -293,7 +294,7 @@ map3 <- ggplot() +
   geom_sf(data=ch_ea, colour="#000000") +
   coord_sf(xlim = c(924425, 2796481), ylim = c(744414, 2711519)) +
   theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
-  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "black") +
+  annotation_scale(location = "bl", width_hint = 0.2, text_size = 6, text_face = "bold", text_family = "sans", text_col = "black") +
   
   theme(legend.title = element_blank(), 
         legend.position = c(.1, .25), 
@@ -314,21 +315,27 @@ map3
 p1 = ggplot()+
   geom_sf(data=asia, fill = "#C0C0C0", colour="#A9AB9D") +
   layer_spatial(vegwgs_reprj) +
-  scale_fill_gradientn(colours=myCol2,  limits=c(1,100), breaks=c(25, 50,  75, 100), na.value = "transparent", name="Percent tree cover") +
-  geom_sf(data=fires, fill=NA, colour = "#c62b27") +
+  scale_fill_gradientn(colours=myCol2,  limits=c(1,100), breaks=c(25, 50,  75, 100), na.value = "transparent", name="Percent\ntree cover") +
+  geom_sf(data=fires, fill=NA, colour = "#c62b27", lwd=0.2) +
   coord_sf(xlim = c(1024425, 2696481), ylim = c(1044414, 2611519)) +
   theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "#C5D8D7")) +
   
-  theme( 
+  theme(legend.title = element_text( size=8), 
+        legend.text=element_text(size=6),
         legend.position = c(.15, .83), 
         legend.box="vertical",
         legend.background = element_rect(fill=alpha('white', 0.5)),
+        legend.key.height = unit(.1, 'in'), 
+        legend.key.width = unit(.1, 'in'),
          axis.text.x=element_blank(),
         axis.ticks.x=element_blank(), 
         axis.text.y=element_blank(), 
         axis.ticks.y=element_blank()) 
    
 p1
+```
+```{r}
+ggsave("../figures/FLARE-GEB-VegFireMap.png", plot = p1, width = 3, height = 3.5, units = c("in"), dpi = 600)
 ```
 
 ## Legend
@@ -350,10 +357,11 @@ legend1 =  ggplot() +
         size = 0.5), 
         panel.background = element_rect(fill = "#C5D8D7")) +
   annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
-  theme(legend.title = element_text(), 
-        legend.position = c(.22, .9), 
-        legend.key.height = unit(.1, 'in'), 
-        legend.key.width = unit(.1, 'in'),
+  theme(legend.title = element_text( size=6), 
+        legend.text=element_text(size=4), 
+        legend.position = c(.3, .9), 
+        legend.key.height = unit(.05, 'in'), 
+        legend.key.width = unit(.05, 'in'),
         legend.background = element_rect(fill=alpha('white', 0.9)),
          axis.text.x=element_blank(),
         axis.ticks.x=element_blank(), 
@@ -361,23 +369,27 @@ legend1 =  ggplot() +
         axis.ticks.y=element_blank()) +
   guides(fill=guide_legend(nrow=3, byrow=FALSE))
 
-
+legend1
 ```
 
 # Combine Map and Legend
 
 ## Ecozones
-```{r fig.height=3.5, fig.width=3}
+```{r fig.height=2.5, fig.width=2}
 fig_eco = cowplot::ggdraw(map1) + 
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 9,  x=.61, y=.77) +
-  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 9,  x=.5, y=.44) +
-  draw_label(label=(expression(paste(70*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 70, size = 9,  x=.72, y=.9) +
-  draw_label(label=(expression(paste(60*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 60, size = 9,  x=.92, y=.83) +
-  draw_label(label=(expression(paste(50*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 45, size = 9,  x=.91, y=.38) +
-  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 10,  x=.35, y=.54) +
-  draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 11, x=.36, y=.3) 
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 5,  x=.63, y=.69) +
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 5,  x=.5, y=.46) +
+  draw_label(label=(expression(paste(70*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 70, size = 5,  x=.72, y=.77) +
+  draw_label(label=(expression(paste(60*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 60, size = 5,  x=.91, y=.69) +
+  draw_label(label=(expression(paste(50*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 45, size = 5,  x=.89, y=.41) +
+  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 5,  x=.33, y=.52) +
+  draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 7, x=.36, y=.4) 
 
 fig_eco
+```
+
+```{r}
+ggsave("../figures/FLARE-GEB-EcozoneMap.png", plot = fig_eco, width = 2, height = 2.5, units = c("in"), dpi = 600)
 ```
 
 ## Permafrost and fire
@@ -385,28 +397,17 @@ fig_eco
 legend1 <- get_legend(legend1)
 ```
 
-```{r fig.height=2.5, fig.width=3}
+```{r fig.height=3.5, fig.width=3}
 fig_fires = cowplot::ggdraw(map2) + 
-  draw_plot(legend1, x=.14, y=.8, width=.5, height=.1) +
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "bold", color = "black", size = 9,  x=.58, y=.89)
+  draw_plot(legend1, x=.14, y=.7, width=.3, height=.1) 
 
 fig_fires
 ```
 
-
-
-```{r eval=FALSE, fig.height=7, fig.width=6, include=FALSE}
-fig1 = ggdraw(xlim = c(0, 6), ylim = c(0, 7)) +
-  draw_plot(fig_eco, x = .35, y = 4.51, width = 3, height = 2.5) +
-  draw_plot(fig_fires, x = 0.5, y = -0.02, width = 5, height = 4.5, scale = 1.05) +
-  draw_image("../images/Siberia_burn_unburn.PNG", x = 2.9, y = 4.5, width = 3.5, height = 2.5, scale = .95) +
-
-  draw_label("(a)", x = 0.25, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
-   draw_label("(b)", x = 3.55, y = 6.8, fontfamily = "sans", fontface = "bold", color = "black", size = 14) +
-  draw_label("(c)", x = 0.25, y = 4.2, fontfamily = "sans", fontface = "bold", color = "black", size = 14)
-
-fig1
+```{r}
+ggsave("../figures/FLARE-GEB-PermafrostFireMap.png", plot = fig_fires, width = 3, height = 3.5, units = c("in"), dpi = 600)
 ```
+
 
 
 
