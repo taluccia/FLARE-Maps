@@ -322,11 +322,11 @@ p1 = ggplot()+
   
   theme(legend.title = element_text( size=8), 
         legend.text=element_text(size=6),
-        legend.position = c(.15, .83), 
+        legend.position = c(.16, .8), 
         legend.box="vertical",
         legend.background = element_rect(fill=alpha('white', 0.5)),
-        legend.key.height = unit(.1, 'in'), 
-        legend.key.width = unit(.1, 'in'),
+        legend.key.height = unit(.07, 'in'), 
+        legend.key.width = unit(.07, 'in'),
          axis.text.x=element_blank(),
         axis.ticks.x=element_blank(), 
         axis.text.y=element_blank(), 
@@ -359,9 +359,9 @@ legend1 =  ggplot() +
   annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = "bold", text_family = "sans", text_col = "white") +
   theme(legend.title = element_text( size=6), 
         legend.text=element_text(size=4), 
-        legend.position = c(.3, .9), 
-        legend.key.height = unit(.05, 'in'), 
-        legend.key.width = unit(.05, 'in'),
+        legend.position = c(.33, .9), 
+        legend.key.height = unit(.07, 'in'), 
+        legend.key.width = unit(.07, 'in'),
         legend.background = element_rect(fill=alpha('white', 0.9)),
          axis.text.x=element_blank(),
         axis.ticks.x=element_blank(), 
@@ -377,12 +377,12 @@ legend1
 ## Ecozones
 ```{r fig.height=2.5, fig.width=2}
 fig_eco = cowplot::ggdraw(map1) + 
-  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 5,  x=.63, y=.69) +
-  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 5,  x=.5, y=.46) +
+  draw_label(label="Cherskiy", fontfamily = "sans", fontface = "plain", color = "black", size = 6,  x=.63, y=.69) +
+  draw_label(label="Yakutsk", fontfamily = "sans", fontface = "plain", color = "black", size = 6,  x=.5, y=.46) +
   draw_label(label=(expression(paste(70*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 70, size = 5,  x=.72, y=.77) +
   draw_label(label=(expression(paste(60*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 60, size = 5,  x=.91, y=.69) +
   draw_label(label=(expression(paste(50*degree,"N"))), fontfamily = "sans", fontface = "plain", color = "black",angle= 45, size = 5,  x=.89, y=.41) +
-  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 5,  x=.33, y=.52) +
+  draw_label(label="Arctic Circle", fontfamily = "sans", fontface = "plain", color = "white", size = 6,  x=.33, y=.52) +
   draw_label(label="Russia", fontfamily = "sans", fontface = "plain", color = "black", size = 7, x=.36, y=.4) 
 
 fig_eco
@@ -399,7 +399,7 @@ legend1 <- get_legend(legend1)
 
 ```{r fig.height=3.5, fig.width=3}
 fig_fires = cowplot::ggdraw(map2) + 
-  draw_plot(legend1, x=.14, y=.7, width=.3, height=.1) 
+  draw_plot(legend1, x=.15, y=.68, width=.3, height=.1) 
 
 fig_fires
 ```
