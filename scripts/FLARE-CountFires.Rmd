@@ -1,0 +1,142 @@
+---
+title: "Count fires by year"
+author: "Anna Talucci"
+date: '2023-02-01'
+output: html_document
+---
+# Overview
+
+# Packages
+```{r}
+library(sf)
+library(tidyverse)
+```
+
+
+```{r}
+fires = st_read("../data/SiberiaFires/SiberiaFires2001-2020.shp", "SiberiaFires2001-2020")
+```
+```{r}
+head(fires)
+```
+
+```{r}
+f2001 = fires %>% filter(FireYr=="2001") 
+n_distinct(f2001$UniqueId)
+```
+
+```{r}
+f2002 = fires %>% filter(FireYr=="2002") 
+n_distinct(f2002$UniqueId)
+```
+
+```{r}
+f2003 = fires %>% filter(FireYr=="2003") 
+n_distinct(f2003$UniqueId)
+```
+
+```{r}
+f2004 = fires %>% filter(FireYr=="2004") 
+n_distinct(f2004$UniqueId)
+```
+
+```{r}
+f2005 = fires %>% filter(FireYr=="2005") 
+n_distinct(f2005$UniqueId)
+```
+
+```{r}
+f2006 = fires %>% filter(FireYr=="2006") 
+n_distinct(f2006$UniqueId)
+```
+
+```{r}
+f2007 = fires %>% filter(FireYr=="2007") 
+n_distinct(f2007$UniqueId)
+```
+
+```{r}
+f2008 = fires %>% filter(FireYr=="2008") 
+n_distinct(f2008$UniqueId)
+```
+
+```{r}
+f2009 = fires %>% filter(FireYr=="2009") 
+n_distinct(f2009$UniqueId)
+```
+
+```{r}
+f2010 = fires %>% filter(FireYr=="2010") 
+n_distinct(f2010$UniqueId)
+```
+
+```{r}
+f2011 = fires %>% filter(FireYr=="2011") 
+n_distinct(f2011$UniqueId)
+```
+
+```{r}
+f2012 = fires %>% filter(FireYr=="2012") 
+n_distinct(f2012$UniqueId)
+```
+
+```{r}
+f2013 = fires %>% filter(FireYr=="2013") 
+n_distinct(f2013$UniqueId)
+```
+
+```{r}
+f2014 = fires %>% filter(FireYr=="2014") 
+n_distinct(f2014$UniqueId)
+```
+
+```{r}
+f2015 = fires %>% filter(FireYr=="2015") 
+n_distinct(f2015$UniqueId)
+```
+
+```{r}
+f2016 = fires %>% filter(FireYr=="2016") 
+n_distinct(f2016$UniqueId)
+```
+
+```{r}
+f2017 = fires %>% filter(FireYr=="2017") 
+n_distinct(f2017$UniqueId)
+```
+
+```{r}
+f2018 = fires %>% filter(FireYr=="2018") 
+n_distinct(f2018$UniqueId)
+```
+
+```{r}
+f2019 = fires %>% filter(FireYr=="2019") 
+n_distinct(f2019$UniqueId)
+```
+
+```{r}
+f2019 = fires %>% filter(FireYr=="2019") 
+n_distinct(f2019$IDobj)
+```
+```{r}
+top350 = f2019 %>% slice_tail(n = 351) 
+unique(top350$IDobj)
+```
+```{r}
+f2020 = fires %>% filter(FireYr=="2020") 
+n_distinct(f2020$UniqueId)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
